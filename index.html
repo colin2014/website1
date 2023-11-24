@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Name Picker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        #container {
+            text-align: center;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            max-width: 800px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-size: 28px;
+            color: #333;
+            margin: 0;
+        }
+
+        label {
+            font-size: 18px;
+            color: #333;
+        }
+
+        select,
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        #nameList {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin: 20px 0;
+            font-size: 20px;
+        }
+
+        .nameItem {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+
+        }
+
+        .nameArrow {
+            margin-left: 10px;
+            display: none;
+        }
+
+        #picker {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100px;
+            color: #333;
+            margin: 20px 0;
+            border: 2px solid #333;
+            border-radius: 5px;
+            background-color: #fff;
+            font-size: 48px;
+
+        }
+
+
+
+        #startButton {
+            background-color: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #startButton:hover {
+            background-color: #0056b3;
+        }
+
+        #nameInput {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            resize: vertical;
+            height: 200px;
+        }
+
+        #updateNamesButton {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        #updateNamesButton:hover {
+            background-color: #1e7e34;
+        }
+
+        .arrow {
+            visibility: hidden;
+            margin-right: 5px;
+        }
+
+        .selected .arrow {
+            visibility: visible;
+        }
+
+        #mainContainer {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+        }
+
+        #content {
+            flex: 1;
+            /* Adjust padding/margin as needed */
+        }
+
+        #nameListContainer {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            /* Adjust padding/margin as needed */
+        }
+
+        @keyframes fireworks {
+            0% {
+                opacity: 1;
+                transform: scale(0.5) translate(0px, 0px);
+            }
+
+            100% {
+                opacity: 0;
+                transform: scale(2) translate(var(--translate-x), var(--translate-y));
+            }
+        }
+
+        @keyframes fireworks-repeat {
+
+            0%,
+            100% {
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+        }
+
+        .firework-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .firework-text {
+            font-size: 35em;
+            color: green;
+            animation: fireworks-repeat 2s ease-in-out;
+        }
+
+        .firework-spark {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: gold;
+            border-radius: 50%;
+            animation: fireworks 1.5s ease-out infinite;
+        }
+    </style>
+
+
+
+</head>
+
+<body>
+    <div id="container">
+        <h1>Random Name Picker</h1>
+        <div id="mainContainer">
+            <div id="content">
+                <div>
+                    <label for="gradeInput">Select Grade:</label>
+                    <select id="gradeInput">
+                        <option value="Grade8S1">Grade 8 S1</option>
+                        <option value="Grade9S1">Grade 9 S1</option>
+                        <option value="Grade10">Grade 10</option>
+                        <option value="Grade11">Grade 11</option>
+                        <option value="Grade12">Grade 12</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="durationInput">Spin duration (seconds):</label>
+                    <input type="number" id="durationInput" min="1" value="5">
+                </div>
+                <div id="picker"></div>
+                <div id="timer"></div>
+                <div>
+                    <label for="nameInput">Edit/Add Names:</label>
+                    <textarea id="nameInput" rows="5"></textarea>
+                    <button id="updateNamesButton">Update Names</button>
+                </div>
+                <button id="startButton">Start</button>
+            </div>
+            <div id="nameListContainer">
+                <div id="nameList">
+                    <!-- Names will be dynamically added here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <script>
+
+        const grades = {
+            Grade8S1: [
+                "Kaan",
+                "Lucas",
+                "Paloma",
+                "Finn",
+                "Owen",
+                "Joseph",
+                "Lachlan",
+                "Mariona",
+                "Doruk",
+                "Joey",
+                "Fernanda",
+                "Arya",
+                "Vivaan",
+                "Khue",
+                "Hamzeh",
+                "Jamal",
+                "Khai",
+                "Mia"
+            ],
+            Grade9S1: [
+                "Will",
+                "Rayan",
+                "Reet",
+                "Pablo",
+                "Gugi",
+                "Piers",
+                "Max",
+                "Alyan",
+                "Nazarii",
+                "Leo",
+                "Dylan",
+                "Jorge",
+                "Elijah",
+                "Jacob",
+                "Zsombor",
+                "Gabriel",
+                "Daniel"
+            ],
+            Grade10: [
+                "Emir",
+                "Asan",
+                "Karan",
+                "Shanay",
+                "Matthew",
+                "Max",
+                "Caden",
+                "Guillermo",
+                "Rafa",
+                "Arkadii",
+                "Mariana",
+                "Dhariya",
+                "Jaume",
+                "Will"
+            ],
+            Grade11: [
+                "Rhys",
+                "Jai",
+                "Carter",
+                "Ali",
+                "Morgan",
+                "Tia",
+                "Emil",
+                "Connor",
+                "Rowan"
+            ],
+            Grade12: [
+                "Rachel",
+                "Nayan",
+                "Thomas",
+                "Stella",
+                "George",
+                "Igor",
+                "Marta",
+                "Sudhanvi",
+                "Valerio",
+                "Dom"
+            ]
+        };
+
+        // Get elements from the DOM
+        const gradeInput = document.getElementById("gradeInput");
+        const durationInput = document.getElementById("durationInput");
+        const picker = document.getElementById("picker");
+        const timer = document.getElementById("timer");
+        const startButton = document.getElementById("startButton");
+        const nameInput = document.getElementById("nameInput");
+        const updateNamesButton = document.getElementById("updateNamesButton");
+
+        // Initial state
+        let spinning = false;
+        let interval; // Variable to hold the interval
+
+
+        function updatePickerAndList(namesArray, index) {
+            picker.textContent = namesArray[index];
+            highlightSelectedName(index);
+        }
+
+        function highlightSelectedName(index) {
+            const nameItems = document.querySelectorAll('.nameItem');
+            nameItems.forEach((item, idx) => {
+                item.classList[idx === index ? 'add' : 'remove']('selected');
+                const arrowSpan = item.querySelector('.arrow');
+                if (arrowSpan) {
+                    arrowSpan.style.visibility = idx === index ? 'visible' : 'hidden';
+                }
+            });
+        }
+
+
+
+        // Function to update names list in the UI
+        function updateNameList() {
+            const selectedGrade = gradeInput.value;
+            const namesArray = grades[selectedGrade];
+            const nameListDiv = document.getElementById('nameList');
+            nameListDiv.innerHTML = ''; // Clear existing names
+
+            namesArray.forEach((name, index) => {
+                const listItem = document.createElement('div');
+                listItem.classList.add('nameItem');
+
+                const arrowSpan = document.createElement('span');
+                arrowSpan.classList.add('arrow');
+                arrowSpan.textContent = '→';
+                arrowSpan.style.visibility = 'hidden'; // Initially hide the arrow
+
+                listItem.appendChild(arrowSpan);
+                listItem.appendChild(document.createTextNode(name));
+                nameListDiv.appendChild(listItem);
+            });
+
+            nameInput.value = namesArray.join("\n");
+        }
+
+        // Set initial names list to Grade 8
+        gradeInput.value = "Grade8S1";
+        updateNameList();
+
+        // Event listeners
+        updateNamesButton.addEventListener("click", updateNameList);
+        gradeInput.addEventListener("change", updateNameList);
+
+        startButton.addEventListener("click", () => {
+            if (!spinning) {
+                const selectedGrade = gradeInput.value;
+                const namesArray = grades[selectedGrade];
+                const duration = parseInt(durationInput.value) * 1000;
+
+                if (!namesArray || namesArray.length === 0 || isNaN(duration)) {
+                    alert("Please select a valid grade, enter valid names, and specify duration.");
+                    return;
+                }
+
+                spinning = true;
+                startButton.disabled = true;
+
+                let startTime = Date.now();
+                let chosenIndex = Math.floor(Math.random() * namesArray.length);
+                let currentIndex = 0;
+
+                interval = setInterval(() => {
+                    const currentTime = Date.now();
+                    const elapsedTime = currentTime - startTime;
+                    const elapsedFraction = elapsedTime / duration;
+
+                    if (elapsedFraction < 1) {
+                        currentIndex = (currentIndex + 1) % namesArray.length;
+                        updatePickerAndList(namesArray, currentIndex);
+                        picker.textContent = namesArray[currentIndex];
+                    } else {
+                        clearInterval(interval);
+                        displayChosenName(namesArray[chosenIndex]);
+                        spinning = false;
+                        startButton.disabled = false;
+                        timer.textContent = "";
+                    }
+
+                    const remainingTime = Math.max(0, (duration - elapsedTime) / 1000);
+                    timer.textContent = `Time remaining: ${remainingTime.toFixed(1)} seconds`;
+                }, 100);
+            }
+        });
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        function displayChosenName(name) {
+            // Clear existing content
+            document.body.innerHTML = '';
+
+            // Create a container for the fireworks and text
+            const fireworkContainer = document.createElement('div');
+            fireworkContainer.className = 'firework-container';
+            document.body.appendChild(fireworkContainer);
+
+            // Create the chosen name text
+            const chosenNameDiv = document.createElement('div');
+            chosenNameDiv.className = 'firework-text infinite'; // Add infinite class for repeated flashing
+            chosenNameDiv.textContent = name;
+            fireworkContainer.appendChild(chosenNameDiv);
+
+            // Create fireworks effect
+            for (let i = 0; i < 50; i++) {
+                const spark = document.createElement('div');
+                spark.className = 'firework-spark';
+
+                // Set random background color
+                spark.style.backgroundColor = getRandomColor();
+
+                spark.style.top = '50%';
+                spark.style.left = '50%';
+
+                // Randomize the direction and distance of each spark
+                const angle = Math.random() * 360;
+                const radius = 100 + Math.random() * 200;
+                const translateX = radius * Math.cos(angle) + 'px';
+                const translateY = radius * Math.sin(angle) + 'px';
+
+                spark.style.setProperty('--translate-x', translateX);
+                spark.style.setProperty('--translate-y', translateY);
+
+                fireworkContainer.appendChild(spark);
+            }
+        }
+    </script>
+</body>
+
+</html>
+
